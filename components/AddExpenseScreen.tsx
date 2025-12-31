@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Check, Sparkles, Plus, ArrowRight, User, Users, Heart } from 'lucide-react';
+import { Camera, X, Check, Sparkles, Plus, ArrowRight, User, Users, Heart, Coffee, Utensils, Car, ShoppingBag, Music, Flame, HelpCircle, Cigarette } from 'lucide-react';
 import { Category, Transaction } from '../types';
 import { categorizeExpense, processBillImage } from '../services/geminiService';
 
@@ -9,6 +9,17 @@ interface Props {
   onAdd: (t: Transaction) => void;
   onCancel: () => void;
 }
+
+const QUICK_OPTIONS = [
+  { label: 'Lunch / Dinner', icon: <Utensils size={16} />, category: 'Food' },
+  { label: 'Chai / Coffee', icon: <Coffee size={16} />, category: 'Food' },
+  { label: 'Auto / Metro', icon: <Car size={16} />, category: 'Transport' },
+  { label: 'Clothes / Shoes', icon: <ShoppingBag size={16} />, category: 'Shopping' },
+  { label: 'Smoke / Vape', icon: <Cigarette size={16} />, category: 'Habits' },
+  { label: 'Movie / Gaming', icon: <Music size={16} />, category: 'Entertainment' },
+  { label: 'Daily Habits', icon: <Flame size={16} />, category: 'Habits' },
+  { label: 'Something else', icon: <HelpCircle size={16} />, category: 'Misc' },
+];
 
 const AddExpenseScreen: React.FC<Props> = ({ onAdd, onCancel }) => {
   const [amount, setAmount] = useState('');
@@ -36,11 +47,20 @@ const AddExpenseScreen: React.FC<Props> = ({ onAdd, onCancel }) => {
     }
   };
 
+  const handleQuickOptionSelect = async (option: string) => {
+    setUserContext(option);
+    await performAiAnalysis(option);
+  };
+
   const handleContextSubmit = async () => {
+    await performAiAnalysis(userContext);
+  };
+
+  const performAiAnalysis = async (context: string) => {
     setStep('ai');
     setAiLoading(true);
     try {
-      const result = await categorizeExpense(Number(amount), userContext);
+      const result = await categorizeExpense(Number(amount), context);
       setAiResult(result);
       setSubCategoryInput(result.subCategory);
       setStep('confirm');
@@ -151,11 +171,33 @@ const AddExpenseScreen: React.FC<Props> = ({ onAdd, onCancel }) => {
                 autoFocus type="text" value={userContext}
                 onChange={(e) => setUserContext(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleContextSubmit()}
-                className="text-3xl font-bold bg-transparent outline-none w-full text-center tracking-tight mb-8"
-                placeholder="e.g. Lunch, Jeans, Auto..."
+                className="text-3xl font-bold bg-transparent outline-none w-full text-center tracking-tight mb-8 border-b-2 border-transparent focus:border-black transition-all"
+                placeholder="Type here..."
               />
-              <button onClick={handleContextSubmit} className="w-full bg-black text-white py-5 rounded-[24px] font-bold shadow-xl shadow-black/10 flex items-center justify-center gap-2 transition-all active:scale-95">
-                Analyze with AI <Sparkles size={18} />
+              
+              <div className="flex flex-wrap justify-center gap-2 mb-10">
+                {QUICK_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.label}
+                    onClick={() => handleQuickOptionSelect(opt.label)}
+                    className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-100 rounded-full text-xs font-bold hover:border-black hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+                  >
+                    {opt.icon}
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={handleContextSubmit} 
+                disabled={!userContext.trim()}
+                className={`w-full py-5 rounded-[24px] font-bold shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                  userContext.trim() 
+                  ? 'bg-black text-white shadow-black/10' 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                Continue <ArrowRight size={18} />
               </button>
             </motion.div>
           )}
