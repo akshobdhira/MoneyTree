@@ -1,0 +1,7 @@
+{
+  "name": "MoneyTree - Intelligent Student Expense Tracker",
+  "description": "A mobile-first, AI-driven money tracker designed for Indian college students to track allowances, scan bills, and get smart spending insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
